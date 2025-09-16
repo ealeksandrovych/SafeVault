@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h2>Welcome, @User.Identity?.Name!</h2>
+
+<p>This is a secured area.</p>
+
+@if (User.IsInRole("Admin"))
+{
+    <p><a asp-action="AdminOnly">Go to Admin Panel</a></p>
+}
