@@ -1,8 +1,7 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using NUnit.Framework;
 using SafeVault.Controllers;
+using System.Linq;
 
 namespace Tests;
 
@@ -10,26 +9,16 @@ namespace Tests;
 public class TestAuthentication
 {
     [Test]
-    public void AdminOnly_Should_Be_Forbidden_For_NonAdmin()
+    public void AdminOnly_Action_Should_Have_AuthorizeAttribute_With_AdminRole()
     {
-        var claims = new List<Claim> {
-            new Claim(ClaimTypes.Name, "TestUser"),
-            new Claim(ClaimTypes.Role, "User")
-        };
-        var identity = new ClaimsIdentity(claims, "TestAuth");
-        var principal = new ClaimsPrincipal(identity);
+        // Arrange
+        var method = typeof(DashboardController).GetMethod("AdminOnly");
+        var attribute = (AuthorizeAttribute?)method?
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true)
+            .FirstOrDefault();
 
-        var context = new DefaultHttpContext { User = principal };
-        var controller = new DashboardController
-        {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = context
-            }
-        };
-
-        var result = controller.AdminOnly();
-
-        Assert.That(result, Is.InstanceOf<ForbidResult>());
+        // Assert
+        Assert.That(attribute, Is.Not.Null);
+        Assert.That(attribute!.Roles, Is.EqualTo("Admin"));
     }
 }
